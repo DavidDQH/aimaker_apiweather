@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const API_KEY = 'a4226a1c965d495e92754736250112';
+const API_KEY = process.env.WEATHER_API_KEY;
 const API_BASE_URL = 'https://api.weatherapi.com/v1';
 
 // 随机城市列表 - 中国城市
@@ -29,6 +29,13 @@ const cities = [
 
 export async function GET() {
   try {
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: 'Weather API key is not configured' },
+        { status: 500 }
+      );
+    }
+
     // 随机选择一个城市
     const randomCity = cities[Math.floor(Math.random() * cities.length)];
     
