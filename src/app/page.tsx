@@ -148,7 +148,7 @@ export default function Home() {
           <div className="p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
               <div className="flex items-center mb-6 sm:mb-0">
-                <img
+                <Image
                   src={`https:${weather.current.condition.icon}`}
                   alt={weather.current.condition.text}
                   width={120}
