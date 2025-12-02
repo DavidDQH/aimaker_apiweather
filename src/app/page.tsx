@@ -37,7 +37,10 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/weather');
+      // 添加时间戳参数防止缓存
+      const response = await fetch(`/api/weather?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch weather data');
       }

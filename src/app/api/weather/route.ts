@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// 强制动态渲染，禁用缓存
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const API_KEY = process.env.WEATHER_API_KEY;
 const API_BASE_URL = 'https://api.weatherapi.com/v1';
 
