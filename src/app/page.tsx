@@ -53,6 +53,99 @@ export default function Home() {
     }
   };
 
+  // 模型提问子组件（客户端）
+  function ModelAsk() {
+    const [model, setModel] = useState<string>('gemini-2.5-flash-lite');
+    const [prompt, setPrompt] = useState<string>('');
+    const [answer, setAnswer] = useState<string | null>(null);
+    const [loadingAsk, setLoadingAsk] = useState(false);
+    const models = [
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash-tts',
+      'gemini-2.5-flash',
+      'gemini-3-flash',
+      'gemini-robotics-er-1.5-preview',
+      'gemma-3-12b',
+      'gemma-3-1b',
+      'gemma-3-27b',
+      'gemma-3-2b',
+      'gemma-3-4b',
+      'gemini-2.5-flash-native-audio-dialog',
+    ];
+
+    const submitPrompt = async (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!prompt.trim()) return;
+      setLoadingAsk(true);
+      setAnswer(null);
+      try {
+        const res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, prompt }),
+        });
+        const data = await res.json();
+        setAnswer(data.answer ?? JSON.stringify(data));
+      } catch (err) {
+        setAnswer(err instanceof Error ? err.message : '请求出错');
+      } finally {
+        setLoadingAsk(false);
+      }
+    };
+
+    return (
+      <div>
+        <form onSubmit={submitPrompt} className="space-y-4">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium">选择模型：</label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="border rounded px-3 py-2"
+            >
+              {models.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">问题：</label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={4}
+              className="w-full mt-2 border rounded p-3"
+              placeholder="在此输入你的问题（示例：请帮我写一个快速排序实现）"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-60"
+              disabled={loadingAsk}
+            >
+              {loadingAsk ? '回答中...' : '提问'}
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 rounded border"
+              onClick={() => { setPrompt(''); setAnswer(null); }}
+            >
+              清空
+            </button>
+          </div>
+        </form>
+
+        <div className="mt-4">
+          <div className="text-sm text-gray-500 mb-2">回答：</div>
+          <div className="min-h-[80px] p-4 bg-gray-50 rounded border">{answer ?? <span className="text-gray-400">暂无回答</span>}</div>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     fetchWeather();
   }, []);
@@ -225,6 +318,53 @@ export default function Home() {
         {/* 底部说明 */}
         <div className="text-center mt-6 text-white/80 text-sm">
           <p>数据来源: WeatherAPI.com</p>
+        </div>
+        {/* 模型问答区域 */}
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-6">
+          <h2 className="text-xl font-bold mb-4">模型问答（可选择下表中的模型进行提问）</h2>
+
+          {/* 模型列表 */}
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-sm text-gray-500 border-b">
+                  <th className="py-2">模型</th>
+                  <th className="py-2">类别</th>
+                  <th className="py-2">RPM</th>
+                  <th className="py-2">TPM</th>
+                  <th className="py-2">RPD</th>
+                  <th className="py-2">图表</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800">
+                {[
+                  ['gemini-2.5-flash-lite','文本输出模型','1 / 10','2 / 250K','1 / 20',''],
+                  ['gemini-2.5-flash-tts','多模态生成模型','0 / 3','0 / 10K','0 / 10',''],
+                  ['gemini-2.5-flash','文本输出模型','0 / 5','0 / 250K','0 / 20',''],
+                  ['gemini-3-flash','文本输出模型','0 / 5','0 / 250K','0 / 20',''],
+                  ['gemini-robotics-er-1.5-preview','其他模型','0 / 10','0 / 250K','0 / 20',''],
+                  ['gemma-3-12b','其他模型','0 / 30','0 / 15K','0 / 14.4K',''],
+                  ['gemma-3-1b','其他模型','0 / 30','0 / 15K','0 / 14.4K',''],
+                  ['gemma-3-27b','其他模型','0 / 30','0 / 15K','0 / 14.4K',''],
+                  ['gemma-3-2b','其他模型','0 / 30','0 / 15K','0 / 14.4K',''],
+                  ['gemma-3-4b','其他模型','0 / 30','0 / 15K','0 / 14.4K',''],
+                  ['gemini-2.5-flash-native-audio-dialog','Live API','0 / 无限制','0 / 1M','0 / 无限制',''],
+                ].map((cols) => (
+                  <tr key={cols[0]} className="border-b hover:bg-gray-50">
+                    <td className="py-2">{cols[0]}</td>
+                    <td className="py-2">{cols[1]}</td>
+                    <td className="py-2">{cols[2]}</td>
+                    <td className="py-2">{cols[3]}</td>
+                    <td className="py-2">{cols[4]}</td>
+                    <td className="py-2">{cols[5]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 提问表单 */}
+          <ModelAsk />
         </div>
       </div>
     </div>
